@@ -28,7 +28,8 @@ Prompt:
 
 Flags:
   -m, --model NAME    model entry from the config file (default "default")
-  -s, --system TEXT   system prompt (default "You are a friendly assistant")
+  -s, --system TEXT   system prompt (default: model's system_prompt,
+                      else "You are a friendly assistant")
   -c, --config PATH   config file (default ~/.vroomfondel.yaml,
                       fallback ~/.config/vroomfondel/{vroomfondel,config}.yaml)
   -h, --help          show this help and exit
@@ -45,6 +46,7 @@ Config:
 func Run(args []string, stdout, stderr io.Writer, stdin *os.File) int {
 	var modelName = "default"
 	var systemPrompt string
+	var systemFlagSet bool
 	var configFile string
 	var showHelp bool
 	var positional []string
@@ -81,6 +83,7 @@ func Run(args []string, stdout, stderr io.Writer, stdin *os.File) int {
 			modelName = value
 		case "s", "system":
 			systemPrompt = value
+			systemFlagSet = true
 		case "c", "config":
 			configFile = value
 		case "h", "help":
@@ -94,10 +97,6 @@ func Run(args []string, stdout, stderr io.Writer, stdin *os.File) int {
 	if showHelp {
 		fmt.Fprint(stdout, usage)
 		return 0
-	}
-
-	if systemPrompt == "" {
-		systemPrompt = "You are a friendly assistant"
 	}
 
 	prompt := strings.Join(positional, " ")
@@ -123,9 +122,24 @@ func Run(args []string, stdout, stderr io.Writer, stdin *os.File) int {
 		return 1
 	}
 
+	// Precedence: -s/--system flag > per-model system_prompt in config >
+	// built-in default. The flag wins even when empty so it can clear a
+	// config value; an empty final prompt omits the system message.
+	if !systemFlagSet {
+		systemPrompt = model.SystemPrompt
+	}
+	if systemPrompt == "" && !systemFlagSet {
+		systemPrompt = "You are a friendly assistant"
+	}
+
 	messages := []llm.ChatMessage{
-		{Role: "system", Content: systemPrompt},
 		{Role: "user", Content: combined},
+	}
+	if systemPrompt != "" {
+		messages = []llm.ChatMessage{
+			{Role: "system", Content: systemPrompt},
+			{Role: "user", Content: combined},
+		}
 	}
 	endpoints := llm.Endpoints{
 		OpenAIEndpoint: cfg.OpenAIAPI.Endpoint,

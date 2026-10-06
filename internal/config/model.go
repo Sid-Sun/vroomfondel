@@ -28,6 +28,10 @@ type Model struct {
 	// sends only the basic subset (context_length, max_tokens, temperature).
 	TweakLevel string          `mapstructure:"tweak_level"`
 	Tweaks     llm.ModelTweaks `mapstructure:"tweaks"`
+	// SystemPrompt is the default system message for this model. It can be
+	// overridden per-invocation with -s/--system. Empty means the CLI's
+	// built-in default ("You are a friendly assistant").
+	SystemPrompt string `mapstructure:"system_prompt"`
 	// ReasoningEffort is passed through verbatim as "reasoning_effort" to the
 	// backend for models that support toggling/tuning extended thinking (e.g.
 	// "none" to disable thinking, or "low"/"medium"/"high"). Leave empty to

@@ -15,6 +15,9 @@ models:
     # endpoint, the default when omitted) or "ollama" (native Ollama daemon
     # via POST /api/chat using the official ollama/api client).
     backend: "openai"
+    # Default system prompt for this model. Overridden per-invocation with
+    # -s/--system. Leave unset to use "You are a friendly assistant".
+    system_prompt: "You are a friendly assistant"
     tweak_level: "basic" # any value but "advanced" is basic.
     # Optional. Passed through to the backend to toggle/tune extended
     # thinking: the OpenAI backend sends it verbatim as "reasoning_effort",
