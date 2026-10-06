@@ -12,12 +12,16 @@ import (
 	"github.com/sid-sun/vroomfondel/internal/llm"
 )
 
-const usage = `vroomfondel - pipe stdin + prompt to an LLM, stream the response
+const usage = `vroomfondel - quick answers from LLMs, with rigidly defined areas of doubt
+
+Each invocation is a single shot: pipe stdin and/or a positional prompt to
+a model, and the response streams to stdout. No TUI, no conversation
+history, no follow-ups.
 
 Usage:
   vroomfondel [flags] [PROMPT...] < stdin
   echo "some code" | vroomfondel "review this"
-  vroomfondel "write a haiku about pipes"
+  vroomfondel "what is the capital of France?"
   cat main.go | vroomfondel -m local "explain this file"
 
 Prompt:
@@ -26,10 +30,15 @@ Prompt:
   positional args are given, stdin alone is the prompt. One of the two is
   required.
 
+Answers are extremely brief by default: unless overridden, the model is
+instructed to answer directly with no extra detail. Override per-invocation
+with -s/--system or per-model with system_prompt in the config file
+(-s "" sends no system message).
+
 Flags:
   -m, --model NAME    model entry from the config file (default "default")
   -s, --system TEXT   system prompt (default: model's system_prompt,
-                      else "You are a friendly assistant")
+                      else built-in brief-answer prompt)
   -c, --config PATH   config file (default ~/.vroomfondel.yaml,
                       fallback ~/.config/vroomfondel/{vroomfondel,config}.yaml)
   -h, --help          show this help and exit
@@ -129,7 +138,7 @@ func Run(args []string, stdout, stderr io.Writer, stdin *os.File) int {
 		systemPrompt = model.SystemPrompt
 	}
 	if systemPrompt == "" && !systemFlagSet {
-		systemPrompt = "You are a friendly assistant"
+		systemPrompt = "You are a highly intelligent agent which is invoked from the command line to ask very brief questions and / or to evaluate something. Answer the question EXTREMELY BRIEFLY. Do NOT assume what the user wants to know or try to provide information user has not asked for - answer the question directly and leave it there."
 	}
 
 	messages := []llm.ChatMessage{

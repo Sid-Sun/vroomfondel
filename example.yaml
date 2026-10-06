@@ -3,7 +3,7 @@
 # or pass --config PATH explicitly.
 openai:
   api_key: "sk-12345667890abcdefghijkl"
-  endpoint: "http://localhost:3000/ollama/v1/"
+  endpoint: "http://localhost:3000/api/v1/"
 ollama:
   # Base host of the Ollama daemon for models with `backend: ollama`.
   # Note: this is NOT a /v1/ suffixed OpenAI-compatible path.
@@ -16,8 +16,9 @@ models:
     # via POST /api/chat using the official ollama/api client).
     backend: "openai"
     # Default system prompt for this model. Overridden per-invocation with
-    # -s/--system. Leave unset to use "You are a friendly assistant".
-    system_prompt: "You are a friendly assistant"
+    # -s/--system. Leave unset or empty to use the built-in brief-answer
+    # prompt; pass -s "" to send no system message.
+    system_prompt: "You are a highly intelligent agent which is invoked from the command line to ask very brief questions and / or to evaluate something. Answer the question EXTREMELY BRIEFLY. Do NOT assume what the user wants to know or try to provide information user has not asked for - answer the question directly and leave it there."
     tweak_level: "basic" # any value but "advanced" is basic.
     # Optional. Passed through to the backend to toggle/tune extended
     # thinking: the OpenAI backend sends it verbatim as "reasoning_effort",
